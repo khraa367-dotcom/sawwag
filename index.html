@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -19,6 +20,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 #auth h1{font-size:34px;margin:0 0 4px}
 #auth p{margin:0 0 12px;color:var(--muted)}
 #auth .credit{margin:12px 0 0;text-align:center;color:var(--yellow);font-size:14px;font-weight:700;line-height:1.8}
+#auth .developer{margin:-10px 0 0;text-align:center;color:var(--yellow);font-size:14px;font-weight:700}
 input{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:16px;border-radius:10px;font:inherit;font-size:17px;direction:ltr;text-align:left}
 input:focus,button:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
 button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;font-size:17px;cursor:pointer}
@@ -58,7 +60,8 @@ button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;fon
   <div id="err"></div>
   <button class="primary" data-i="login" onclick="doAuth('login')"></button>
   <button class="ghost" data-i="signup" onclick="doAuth('signup')"></button>
-  <p class="credit">© صُنع وطُوّر بكل فخر بواسطة المهندس محمد تاج الدين</p>
+  <p class="credit">© صُنع وطُوّر بكل فخر</p>
+  <p class="developer">(المطور محمد تاج الدين)</p>
 </div>
 
 <div id="app">
@@ -83,7 +86,7 @@ button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;fon
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <script>
-/* ===== ضع إعدادات Firebase هنا / Put your Firebase config here ===== */
+/* ===== Firebase ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyCzDel9E7mhPENKqP5w-E36GEnnBXrPG38",
   authDomain: "sawwag-road.firebaseapp.com",
@@ -92,55 +95,175 @@ const firebaseConfig = {
   messagingSenderId: "619531268752",
   appId: "1:619531268752:web:2a326aeca559aa9988de15"
 };
-/* ================================================================== */
 
-const ALERT_KM=5, LIFETIME_MIN=15, COOLDOWN_SEC=120, HIDE_AT=3;
+/* ===== إعدادات البلاغات ===== */
+const ALERT_KM = 5;
+const LIFETIME_MIN = 15;
+const COOLDOWN_SEC = 15;
+const HIDE_AT = 3;
 
-/* ---------- Languages ---------- */
-const T={
-ar:{title:'سواق الطريق',sub:'سجّل بإيميلك وكلمة مرور. بدون رمز تحقق.',email:'الإيميل',pass:'كلمة المرور (6 أحرف أو أكثر)',login:'دخول',signup:'إنشاء حساب جديد',logout:'خروج',locate:'📍 موقعي',report:'🚓 شفت دورية',finding:'أبحث عن موقعك…',locOk:'الموقع شغال ✓',locOff:'فعّل الموقع (GPS)',noLoc:'ما قدرت أحدد موقعك بعد',wait:'انتظر شوي قبل بلاغ جديد',sent:'تم إرسال البلاغ، شكراً',sendFail:'ما انرسل البلاغ، تأكد من الإنترنت',near:'⚠️ دورية قدامك على بعد {d} كم',patrol:'دورية',ago:'قبل {m} دقيقة',still:'لسا موجودة؟',yes:'نعم',gone:'راحت',thanks:'شكراً على تصويتك',voteFail:'ما انحسب التصويت',
-e_email:'الإيميل غير صحيح',e_pass:'اكتب كلمة المرور',e_weak:'كلمة المرور ضعيفة، استخدم 6 أحرف أو أكثر',e_used:'هذا الإيميل مسجل من قبل، اضغط دخول',e_bad:'الإيميل أو كلمة المرور غلط',e_net:'ما فيه إنترنت',e_gen:'صار خطأ، حاول مرة ثانية'},
-en:{title:'Road Driver',sub:'Sign up with email and password. No verification code.',email:'Email',pass:'Password (6+ characters)',login:'Log in',signup:'Create account',logout:'Log out',locate:'📍 My location',report:'🚓 Patrol spotted',finding:'Finding your location…',locOk:'Location on ✓',locOff:'Turn on location (GPS)',noLoc:'Cannot find your location yet',wait:'Wait a bit before another report',sent:'Report sent, thank you',sendFail:'Report not sent, check your internet',near:'⚠️ Patrol ahead, {d} km away',patrol:'Patrol',ago:'{m} min ago',still:'Still there?',yes:'Yes',gone:'Gone',thanks:'Thanks for your vote',voteFail:'Vote not counted',
-e_email:'Invalid email',e_pass:'Enter your password',e_weak:'Password too weak, use 6+ characters',e_used:'This email is already registered, tap Log in',e_bad:'Wrong email or password',e_net:'No internet connection',e_gen:'Something went wrong, try again'},
-ur:{title:'روڈ ڈرائیور',sub:'ای میل اور پاس ورڈ سے رجسٹر کریں۔ کوئی تصدیقی کوڈ نہیں۔',email:'ای میل',pass:'پاس ورڈ (کم از کم 6 حروف)',login:'لاگ ان',signup:'نیا اکاؤنٹ بنائیں',logout:'لاگ آؤٹ',locate:'📍 میری لوکیشن',report:'🚓 پیٹرول دیکھی',finding:'آپ کی لوکیشن تلاش ہو رہی ہے…',locOk:'لوکیشن آن ہے ✓',locOff:'لوکیشن (GPS) آن کریں',noLoc:'آپ کی لوکیشن ابھی نہیں ملی',wait:'نئی رپورٹ سے پہلے تھوڑا انتظار کریں',sent:'رپورٹ بھیج دی گئی، شکریہ',sendFail:'رپورٹ نہیں بھیجی جا سکی، انٹرنیٹ چیک کریں',near:'⚠️ آگے پیٹرول ہے، {d} کلومیٹر دور',patrol:'پیٹرول',ago:'{m} منٹ پہلے',still:'ابھی بھی موجود ہے؟',yes:'ہاں',gone:'چلی گئی',thanks:'ووٹ کا شکریہ',voteFail:'ووٹ شمار نہیں ہوا',
-e_email:'ای میل درست نہیں',e_pass:'پاس ورڈ لکھیں',e_weak:'پاس ورڈ کمزور ہے، کم از کم 6 حروف رکھیں',e_used:'یہ ای میل پہلے سے رجسٹر ہے، لاگ ان دبائیں',e_bad:'ای میل یا پاس ورڈ غلط ہے',e_net:'انٹرنیٹ نہیں ہے',e_gen:'کوئی خرابی ہوئی، دوبارہ کوشش کریں'}
+/* ===== اللغات ===== */
+const T = {
+ar:{
+title:'سواق الطريق',
+sub:'سجّل بإيميلك وكلمة مرور. بدون رمز تحقق.',
+email:'الإيميل',
+pass:'كلمة المرور (6 أحرف أو أكثر)',
+login:'دخول',
+signup:'إنشاء حساب جديد',
+logout:'خروج',
+locate:'📍 موقعي',
+report:'🚓 شفت دورية',
+finding:'أبحث عن موقعك…',
+locOk:'الموقع شغال ✓',
+locOff:'فعّل الموقع (GPS)',
+noLoc:'ما قدرت أحدد موقعك بعد',
+wait:'انتظر 15 ثانية قبل بلاغ جديد',
+sent:'تم إرسال البلاغ، شكراً',
+sendFail:'ما انرسل البلاغ، تأكد من الإنترنت',
+near:'⚠️ دورية قدامك على بعد {d} كم',
+patrol:'دورية',
+ago:'قبل {m} دقيقة',
+still:'لسا موجودة؟',
+yes:'نعم',
+gone:'راحت',
+thanks:'شكراً على تصويتك',
+voteFail:'ما انحسب التصويت',
+e_email:'الإيميل غير صحيح',
+e_pass:'اكتب كلمة المرور',
+e_weak:'كلمة المرور ضعيفة، استخدم 6 أحرف أو أكثر',
+e_used:'هذا الإيميل مسجل من قبل، اضغط دخول',
+e_bad:'الإيميل أو كلمة المرور غلط',
+e_net:'ما فيه إنترنت',
+e_gen:'صار خطأ، حاول مرة ثانية'
+},
+en:{
+title:'Road Driver',
+sub:'Sign up with email and password. No verification code.',
+email:'Email',
+pass:'Password (6+ characters)',
+login:'Log in',
+signup:'Create account',
+logout:'Log out',
+locate:'📍 My location',
+report:'🚓 Patrol spotted',
+finding:'Finding your location…',
+locOk:'Location on ✓',
+locOff:'Turn on location (GPS)',
+noLoc:'Cannot find your location yet',
+wait:'Wait 15 seconds before another report',
+sent:'Report sent, thank you',
+sendFail:'Report not sent, check your internet',
+near:'⚠️ Patrol ahead, {d} km away',
+patrol:'Patrol',
+ago:'{m} min ago',
+still:'Still there?',
+yes:'Yes',
+gone:'Gone',
+thanks:'Thanks for your vote',
+voteFail:'Vote not counted',
+e_email:'Invalid email',
+e_pass:'Enter your password',
+e_weak:'Password too weak, use 6+ characters',
+e_used:'This email is already registered, tap Log in',
+e_bad:'Wrong email or password',
+e_net:'No internet connection',
+e_gen:'Something went wrong, try again'
+},
+ur:{
+title:'روڈ ڈرائیور',
+sub:'ای میل اور پاس ورڈ سے رجسٹر کریں۔ کوئی تصدیقی کوڈ نہیں۔',
+email:'ای میل',
+pass:'پاس ورڈ (کم از کم 6 حروف)',
+login:'لاگ ان',
+signup:'نیا اکاؤنٹ بنائیں',
+logout:'لاگ آؤٹ',
+locate:'📍 میری لوکیشن',
+report:'🚓 پیٹرول دیکھی',
+finding:'آپ کی لوکیشن تلاش ہو رہی ہے…',
+locOk:'لوکیشن آن ہے ✓',
+locOff:'لوکیشن (GPS) آن کریں',
+noLoc:'آپ کی لوکیشن ابھی نہیں ملی',
+wait:'نئی رپورٹ سے پہلے 15 سیکنڈ انتظار کریں',
+sent:'رپورٹ بھیج دی گئی، شکریہ',
+sendFail:'رپورٹ نہیں بھیجی جا سکی، انٹرنیٹ چیک کریں',
+near:'⚠️ آگے پیٹرول ہے، {d} کلومیٹر دور',
+patrol:'پیٹرول',
+ago:'{m} منٹ پہلے',
+still:'ابھی بھی موجود ہے؟',
+yes:'ہاں',
+gone:'چلی گئی',
+thanks:'ووٹ کا شکریہ',
+voteFail:'ووٹ شمار نہیں ہوا',
+e_email:'ای میل درست نہیں',
+e_pass:'پاس ورڈ لکھیں',
+e_weak:'پاس ورڈ کمزور ہے، کم از کم 6 حروف رکھیں',
+e_used:'یہ ای میل پہلے سے رجسٹر ہے، لاگ ان دبائیں',
+e_bad:'ای میل یا پاس ورڈ غلط ہے',
+e_net:'انٹرنیٹ نہیں ہے',
+e_gen:'کوئی خرابی ہوئی، دوبارہ کوشش کریں'
+}
 };
 
-const NAMES={ar:'عربي',en:'EN',ur:'اردو'};
-let lang='ar';
+const NAMES = {ar:'عربي',en:'EN',ur:'اردو'};
+let lang = 'ar';
 
-try{
-  lang=localStorage.getItem('lang')||(/^ur/.test(navigator.language)?'ur':/^en/.test(navigator.language)?'en':'ar');
-}catch(e){}
+try {
+  lang = localStorage.getItem('lang') ||
+    (/^ur/.test(navigator.language) ? 'ur' :
+    /^en/.test(navigator.language) ? 'en' : 'ar');
+} catch(e) {}
 
-const t=(k,v={})=>(T[lang][k]||k).replace(/{(\w)}/g,(_,x)=>v[x]);
+const t = (k,v={}) =>
+  (T[lang][k] || k).replace(/{(\w)}/g,(_,x)=>v[x]);
 
-function setLang(l){
-  lang=l;
-  try{localStorage.setItem('lang',l)}catch(e){}
-  document.documentElement.lang=l;
-  document.documentElement.dir=l==='en'?'ltr':'rtl';
-  document.querySelectorAll('[data-i]').forEach(el=>el.textContent=t(el.dataset.i));
-  document.getElementById('email').placeholder=t('email');
-  document.getElementById('pass').placeholder=t('pass');
+function setLang(l) {
+  lang = l;
+  try { localStorage.setItem('lang',l); } catch(e) {}
 
-  ['langs1','langs2'].forEach(id=>{
-    document.getElementById(id).innerHTML=Object.keys(NAMES).map(k=>'<button class="lang'+(k===l?' on':'')+'" onclick="setLang(\''+k+'\')">'+NAMES[k]+'</button>').join('');
+  document.documentElement.lang = l;
+  document.documentElement.dir = l === 'en' ? 'ltr' : 'rtl';
+
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    el.textContent = t(el.dataset.i);
   });
 
-  setStatus(pos?'locOk':'finding');
+  document.getElementById('email').placeholder = t('email');
+  document.getElementById('pass').placeholder = t('pass');
+
+  ['langs1','langs2'].forEach(id=>{
+    document.getElementById(id).innerHTML =
+      Object.keys(NAMES).map(k =>
+        '<button class="lang'+(k===l?' on':'')+
+        '" onclick="setLang(\''+k+'\')">'+NAMES[k]+'</button>'
+      ).join('');
+  });
+
+  setStatus(pos ? 'locOk' : 'finding');
   Object.keys(data).forEach(draw);
 }
 
-/* ---------- Firebase ---------- */
+/* ===== Firebase ===== */
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(), db=firebase.firestore();
 
-let me=null,pos=null,map,meMarker,followed=true,first=true,unsub=null,statusKey='finding';
-const markers={},data={},seen={};
+const auth = firebase.auth();
+const db = firebase.firestore();
 
-const ERR={
+let me = null;
+let pos = null;
+let map, meMarker;
+let followed = true;
+let first = true;
+let unsub = null;
+let statusKey = 'finding';
+
+const markers = {};
+const data = {};
+const seen = {};
+
+const ERR = {
 'auth/invalid-email':'e_email',
+'auth/missing-email':'e_email',
 'auth/missing-password':'e_pass',
 'auth/weak-password':'e_weak',
 'auth/email-already-in-use':'e_used',
@@ -150,31 +273,65 @@ const ERR={
 'auth/network-request-failed':'e_net'
 };
 
-async function doAuth(kind){
-  const e=document.getElementById('email').value.trim();
-  const p=document.getElementById('pass').value;
-  document.getElementById('err').textContent='';
+/* ===== تسجيل الدخول وإنشاء الحساب ===== */
+async function doAuth(kind) {
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('pass').value;
+  const errorBox = document.getElementById('err');
 
-  try{
-    if(kind==='signup') await auth.createUserWithEmailAndPassword(e,p);
-    else await auth.signInWithEmailAndPassword(e,p);
-  }catch(x){
-    document.getElementById('err').textContent=t(ERR[x.code]||'e_gen');
+  errorBox.textContent = '';
+
+  if (!email) {
+    errorBox.textContent = t('e_email');
+    return;
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailPattern.test(email)) {
+    errorBox.textContent = t('e_email');
+    return;
+  }
+
+  if (!password) {
+    errorBox.textContent = t('e_pass');
+    return;
+  }
+
+  if (kind === 'signup' && password.length < 6) {
+    errorBox.textContent = t('e_weak');
+    return;
+  }
+
+  try {
+    if (kind === 'signup') {
+      await auth.createUserWithEmailAndPassword(email,password);
+    } else {
+      await auth.signInWithEmailAndPassword(email,password);
+    }
+  } catch(e) {
+    errorBox.textContent = t(ERR[e.code] || 'e_gen');
   }
 }
 
-auth.onAuthStateChanged(u=>{
-  me=u;
-  document.getElementById('auth').style.display=u?'none':'flex';
-  document.getElementById('app').style.display=u?'block':'none';
-  if(u) startApp();
+auth.onAuthStateChanged(user=>{
+  me = user;
+
+  document.getElementById('auth').style.display =
+    user ? 'none' : 'flex';
+
+  document.getElementById('app').style.display =
+    user ? 'block' : 'none';
+
+  if (user) startApp();
   else stopApp();
 });
 
-/* ---------- Map and GPS ---------- */
-function startApp(){
-  if(!map){
-    map=L.map('map',{zoomControl:false}).setView([24.7136,46.6753],11);
+/* ===== الخريطة والموقع ===== */
+function startApp() {
+  if (!map) {
+    map = L.map('map',{zoomControl:false})
+      .setView([24.7136,46.6753],11);
+
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{
       maxZoom:19,
       attribution:'© OpenStreetMap'
@@ -182,7 +339,7 @@ function startApp(){
 
     map.on('dragstart',()=>followed=false);
 
-    meMarker=L.marker([0,0],{
+    meMarker = L.marker([0,0],{
       icon:L.divIcon({
         className:'',
         html:'<div class="me"></div>',
@@ -197,38 +354,52 @@ function startApp(){
     );
   }
 
-  setTimeout(()=>map.invalidateSize(),50);
+  setTimeout(()=>map.invalidateSize(),100);
   listen();
 }
 
-function stopApp(){
-  if(unsub){unsub();unsub=null}
+function stopApp() {
+  if (unsub) {
+    unsub();
+    unsub = null;
+  }
+
   Object.keys(markers).forEach(removeMarker);
 }
 
-function setStatus(k){
-  statusKey=k;
-  document.getElementById('status').textContent=t(k);
+function setStatus(k) {
+  statusKey = k;
+  document.getElementById('status').textContent = t(k);
 }
 
-function onPos(p){
-  pos={lat:p.coords.latitude,lng:p.coords.longitude};
+function onPos(p) {
+  pos = {
+    lat:p.coords.latitude,
+    lng:p.coords.longitude
+  };
+
   meMarker.setLatLng([pos.lat,pos.lng]).addTo(map);
 
-  if(followed){
-    map.setView([pos.lat,pos.lng],first?16:Math.max(map.getZoom(),15));
-    first=false;
+  if (followed) {
+    map.setView(
+      [pos.lat,pos.lng],
+      first ? 16 : Math.max(map.getZoom(),15)
+    );
+    first = false;
   }
 
   setStatus('locOk');
 }
 
-function locate(){
-  followed=true;
+function locate() {
+  followed = true;
 
-  if(pos){
-    map.setView([pos.lat,pos.lng],Math.max(map.getZoom(),15));
-  }else{
+  if (pos) {
+    map.setView(
+      [pos.lat,pos.lng],
+      Math.max(map.getZoom(),15)
+    );
+  } else {
     navigator.geolocation.getCurrentPosition(
       onPos,
       ()=>setStatus('locOff'),
@@ -237,23 +408,41 @@ function locate(){
   }
 }
 
-/* ---------- Reports ---------- */
-function km(a,b,c,d){
-  const R=6371,r=x=>x*Math.PI/180;
-  const dl=r(c-a),dn=r(d-b);
-  const h=Math.sin(dl/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(dn/2)**2;
+/* ===== حساب المسافة ===== */
+function km(a,b,c,d) {
+  const R = 6371;
+  const rad = x => x * Math.PI / 180;
+
+  const dl = rad(c-a);
+  const dn = rad(d-b);
+
+  const h =
+    Math.sin(dl/2)**2 +
+    Math.cos(rad(a))*Math.cos(rad(c))*
+    Math.sin(dn/2)**2;
+
   return 2*R*Math.asin(Math.sqrt(h));
 }
 
-async function sendReport(){
-  if(!pos) return showAlert(t('noLoc'),false);
+/* ===== إرسال البلاغ ===== */
+async function sendReport() {
+  if (!pos) {
+    showAlert(t('noLoc'),false);
+    return;
+  }
 
-  let last=0;
-  try{last=+localStorage.getItem('lastReport')||0}catch(e){}
+  let last = 0;
 
-  if(Date.now()-last<COOLDOWN_SEC*1000) return showAlert(t('wait'),false);
+  try {
+    last = +localStorage.getItem('lastReport') || 0;
+  } catch(e) {}
 
-  try{
+  if (Date.now()-last < COOLDOWN_SEC*1000) {
+    showAlert(t('wait'),false);
+    return;
+  }
+
+  try {
     await db.collection('reports').add({
       lat:pos.lat,
       lng:pos.lng,
@@ -264,119 +453,219 @@ async function sendReport(){
       voters:{}
     });
 
-    try{localStorage.setItem('lastReport',Date.now())}catch(e){}
+    try {
+      localStorage.setItem('lastReport',Date.now());
+    } catch(e) {}
+
     showAlert(t('sent'),false);
-  }catch(e){
+  } catch(e) {
     showAlert(t('sendFail'),false);
   }
 }
 
-function listen(){
-  if(unsub) return;
+/* ===== استقبال البلاغات ===== */
+function listen() {
+  if (unsub) return;
 
-  const since=Date.now()-LIFETIME_MIN*60000;
+  const since = Date.now() - LIFETIME_MIN*60000;
 
-  unsub=db.collection('reports').where('ts','>',since).onSnapshot(snap=>{
-    snap.docChanges().forEach(ch=>{
-      const id=ch.doc.id,r=ch.doc.data();
+  unsub = db.collection('reports')
+    .where('ts','>',since)
+    .onSnapshot(snapshot=>{
 
-      if(ch.type==='removed'){
-        removeMarker(id);
-        return;
-      }
+      snapshot.docChanges().forEach(change=>{
+        const id = change.doc.id;
+        const report = change.doc.data();
 
-      data[id]=r;
-      draw(id);
+        if (change.type === 'removed') {
+          removeMarker(id);
+          return;
+        }
 
-      if(ch.type==='added'&&!seen[id]){
-        seen[id]=1;
+        data[id] = report;
+        draw(id);
 
-        if(r.uid!==me.uid&&pos&&Date.now()-r.ts<5*60000&&r.no-r.yes<HIDE_AT){
-          const d=km(pos.lat,pos.lng,r.lat,r.lng);
+        if (change.type === 'added' && !seen[id]) {
+          seen[id] = 1;
 
-          if(d<=ALERT_KM){
-            showAlert(t('near',{d:d.toFixed(1)}),true);
+          if (
+            report.uid !== me.uid &&
+            pos &&
+            Date.now()-report.ts < 5*60000 &&
+            report.no-report.yes < HIDE_AT
+          ) {
+            const distance = km(
+              pos.lat,
+              pos.lng,
+              report.lat,
+              report.lng
+            );
+
+            if (distance <= ALERT_KM) {
+              showAlert(
+                t('near',{d:distance.toFixed(1)}),
+                true
+              );
+            }
           }
         }
-      }
+      });
     });
-  });
 }
 
-function draw(id){
-  const r=data[id];
+/* ===== إظهار البلاغات على الخريطة ===== */
+function draw(id) {
+  const report = data[id];
 
-  if(!r||r.no-r.yes>=HIDE_AT||Date.now()-r.ts>LIFETIME_MIN*60000){
+  if (
+    !report ||
+    report.no-report.yes >= HIDE_AT ||
+    Date.now()-report.ts > LIFETIME_MIN*60000
+  ) {
     removeMarker(id);
     return;
   }
 
-  const mins=Math.max(0,Math.round((Date.now()-r.ts)/60000));
-  const voted=r.voters&&r.voters[me.uid];
+  const minutes = Math.max(
+    0,
+    Math.round((Date.now()-report.ts)/60000)
+  );
 
-  const html='<b>'+t('patrol')+'</b><div class="dim">'+t('ago',{m:mins})+'</div>'+(voted
-    ?'<div class="dim">'+t('thanks')+'</div>'
-    :'<div>'+t('still')+'</div><button class="primary" onclick="vote(\''+id+'\',1)">'+t('yes')+'</button><button class="ghost" onclick="vote(\''+id+'\',0)">'+t('gone')+'</button>');
+  const voted = report.voters && report.voters[me.uid];
 
-  if(markers[id]){
+  const html =
+    '<b>'+t('patrol')+'</b>' +
+    '<div class="dim">'+t('ago',{m:minutes})+'</div>' +
+    (voted
+      ? '<div class="dim">'+t('thanks')+'</div>'
+      : '<div>'+t('still')+'</div>' +
+        '<button class="primary" onclick="vote(\''+id+'\',1)">'+
+        t('yes')+'</button>' +
+        '<button class="ghost" onclick="vote(\''+id+'\',0)">'+
+        t('gone')+'</button>'
+    );
+
+  if (markers[id]) {
     markers[id].setPopupContent(html);
     return;
   }
 
-  markers[id]=L.marker([r.lat,r.lng],{
-    icon:L.divIcon({
-      className:'',
-      html:'<div class="pat">🚓</div>',
-      iconSize:[30,30]
-    })
-  }).addTo(map).bindPopup(html);
+  markers[id] = L.marker(
+    [report.lat,report.lng],
+    {
+      icon:L.divIcon({
+        className:'',
+        html:'<div class="pat">🚓</div>',
+        iconSize:[30,30]
+      })
+    }
+  ).addTo(map).bindPopup(html);
 }
 
-function removeMarker(id){
-  if(markers[id]){
+function removeMarker(id) {
+  if (markers[id]) {
     map.removeLayer(markers[id]);
     delete markers[id];
   }
+
   delete data[id];
 }
 
-async function vote(id,yes){
-  try{
+/* ===== التصويت على البلاغ ===== */
+async function vote(id,yes) {
+  try {
     await db.collection('reports').doc(id).update({
-      [yes?'yes':'no']:firebase.firestore.FieldValue.increment(1),
+      [yes ? 'yes' : 'no']:
+        firebase.firestore.FieldValue.increment(1),
       ['voters.'+me.uid]:true
     });
 
     map.closePopup();
-  }catch(e){
+  } catch(e) {
     showAlert(t('voteFail'),false);
   }
 }
 
-setInterval(()=>Object.keys(data).forEach(draw),30000);
+/* ===== تحديث البلاغات ===== */
+setInterval(()=>{
+  Object.keys(data).forEach(draw);
+},30000);
 
-/* ---------- Alert: police siren + vibration + banner ---------- */
-let tmr;
+/* ===== تهيئة صوت الصفارة ===== */
+let audioContext = null;
+let audioReady = false;
 
-function playPoliceSiren(){
-  try{
-    const AudioCtx=window.AudioContext||window.webkitAudioContext;
-    if(!AudioCtx) return;
+async function enableAudio() {
+  try {
+    const AudioCtx =
+      window.AudioContext || window.webkitAudioContext;
 
-    const ac=new AudioCtx();
+    if (!AudioCtx) return;
 
-    const playTone=(start,duration,from,to)=>{
-      const osc=ac.createOscillator();
-      const gain=ac.createGain();
+    if (!audioContext) {
+      audioContext = new AudioCtx();
+    }
 
-      osc.type='sawtooth';
-      osc.frequency.setValueAtTime(from,ac.currentTime+start);
-      osc.frequency.linearRampToValueAtTime(to,ac.currentTime+start+duration);
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
 
-      gain.gain.setValueAtTime(0,ac.currentTime+start);
-      gain.gain.linearRampToValueAtTime(0.16,ac.currentTime+start+0.04);
-      gain.gain.setValueAtTime(0.16,ac.currentTime+start+duration-0.04);
-      gain.gain.linearRampToValueAtTime(0,ac.currentTime+start+duration);
+    audioReady = audioContext.state === 'running';
+  } catch(e) {
+    audioReady = false;
+  }
+}
+
+/* أول تفاعل من المستخدم يجهّز الصوت */
+document.addEventListener('pointerdown',enableAudio);
+document.addEventListener('touchstart',enableAudio);
+
+/* ===== صفارة الشرطة ===== */
+function playPoliceSiren() {
+  try {
+    if (!audioContext || !audioReady) return;
+
+    if (audioContext.state !== 'running') {
+      audioContext.resume();
+    }
+
+    const ac = audioContext;
+
+    const playTone = (start,duration,from,to)=>{
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+
+      osc.type = 'sawtooth';
+
+      osc.frequency.setValueAtTime(
+        from,
+        ac.currentTime+start
+      );
+
+      osc.frequency.linearRampToValueAtTime(
+        to,
+        ac.currentTime+start+duration
+      );
+
+      gain.gain.setValueAtTime(
+        0,
+        ac.currentTime+start
+      );
+
+      gain.gain.linearRampToValueAtTime(
+        0.16,
+        ac.currentTime+start+0.04
+      );
+
+      gain.gain.setValueAtTime(
+        0.16,
+        ac.currentTime+start+duration-0.04
+      );
+
+      gain.gain.linearRampToValueAtTime(
+        0,
+        ac.currentTime+start+duration
+      );
 
       osc.connect(gain);
       gain.connect(ac.destination);
@@ -390,51 +679,70 @@ function playPoliceSiren(){
     playTone(0.8,0.35,650,1050);
     playTone(1.2,0.35,1050,650);
 
-    setTimeout(()=>ac.close().catch(()=>{}),2200);
-  }catch(e){}
+  } catch(e) {}
 }
 
-function showAlert(msg,loud){
-  const el=document.getElementById('alert');
+/* ===== التنبيه والاهتزاز ===== */
+let alertTimer;
 
-  el.textContent=msg;
-  el.style.display='block';
-  el.style.background=loud?'var(--red)':'#2c333a';
+function showAlert(message,loud) {
+  const el = document.getElementById('alert');
 
-  clearTimeout(tmr);
-  tmr=setTimeout(()=>el.style.display='none',loud?10000:3000);
+  el.textContent = message;
+  el.style.display = 'block';
+  el.style.background = loud ? 'var(--red)' : '#2c333a';
 
-  if(loud){
-    try{
-      navigator.vibrate&&navigator.vibrate([300,150,300,150,300]);
-    }catch(e){}
+  clearTimeout(alertTimer);
+
+  alertTimer = setTimeout(()=>{
+    el.style.display = 'none';
+  },loud ? 10000 : 3000);
+
+  if (loud) {
+    try {
+      if (navigator.vibrate) {
+        navigator.vibrate([300,150,300,150,300]);
+      }
+    } catch(e) {}
 
     playPoliceSiren();
   }
 }
 
+/* ===== تشغيل اللغة ===== */
 setLang(lang);
 
-if('serviceWorker' in navigator){
-  addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+/* ===== Service Worker ===== */
+if ('serviceWorker' in navigator) {
+  addEventListener('load',()=>{
+    navigator.serviceWorker
+      .register('sw.js')
+      .catch(()=>{});
+  });
 }
 </script>
 
 <!--
-Firestore Rules / قواعد Firestore:
+Firestore Rules:
+
 rules_version = '2';
+
 service cloud.firestore {
-match /databases/{db}/documents {
-match /reports/{id} {
-allow read: if request.auth != null;
-allow create: if request.auth != null
-&& request.resource.data.uid == request.auth.uid
-&& request.resource.data.yes == 0 && request.resource.data.no == 0;
-allow update: if request.auth != null
-&& request.resource.data.diff(resource.data).affectedKeys().hasOnly(['yes','no','voters'])
-&& !(request.auth.uid in resource.data.voters);
-}
-}
+  match /databases/{db}/documents {
+    match /reports/{id} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.yes == 0
+        && request.resource.data.no == 0;
+
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data)
+          .affectedKeys().hasOnly(['yes','no','voters'])
+        && !(request.auth.uid in resource.data.voters);
+    }
+  }
 }
 -->
 
