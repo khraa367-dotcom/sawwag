@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -19,8 +18,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-famil
 #auth{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;padding:28px;gap:12px;max-width:420px;margin:auto}
 #auth h1{font-size:34px;margin:0 0 4px}
 #auth p{margin:0 0 12px;color:var(--muted)}
-#auth .credit{margin:12px 0 0;text-align:center;color:var(--yellow);font-size:14px;font-weight:700;line-height:1.8}
-#auth .developer{margin:-10px 0 0;text-align:center;color:var(--yellow);font-size:14px;font-weight:700}
+#auth .developer{margin:12px 0 0;text-align:center;color:var(--yellow);font-size:14px;font-weight:700;line-height:1.8}
 input{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:16px;border-radius:10px;font:inherit;font-size:17px;direction:ltr;text-align:left}
 input:focus,button:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
 button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;font-size:17px;cursor:pointer}
@@ -60,8 +58,7 @@ button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;fon
   <div id="err"></div>
   <button class="primary" data-i="login" onclick="doAuth('login')"></button>
   <button class="ghost" data-i="signup" onclick="doAuth('signup')"></button>
-  <p class="credit">© صُنع وطُوّر بكل فخر</p>
-  <p class="developer">(المطور محمد تاج الدين)</p>
+  <p class="developer">المطور: (محمد تاج الدين)</p>
 </div>
 
 <div id="app">
@@ -99,7 +96,7 @@ const firebaseConfig = {
 /* ===== إعدادات البلاغات ===== */
 const ALERT_KM = 5;
 const LIFETIME_MIN = 15;
-const COOLDOWN_SEC = 15;
+const COOLDOWN_SEC = 5;
 const HIDE_AT = 3;
 
 /* ===== اللغات ===== */
@@ -118,7 +115,7 @@ finding:'أبحث عن موقعك…',
 locOk:'الموقع شغال ✓',
 locOff:'فعّل الموقع (GPS)',
 noLoc:'ما قدرت أحدد موقعك بعد',
-wait:'انتظر 15 ثانية قبل بلاغ جديد',
+wait:'انتظر 5 ثوانٍ قبل بلاغ جديد',
 sent:'تم إرسال البلاغ، شكراً',
 sendFail:'ما انرسل البلاغ، تأكد من الإنترنت',
 near:'⚠️ دورية قدامك على بعد {d} كم',
@@ -151,7 +148,7 @@ finding:'Finding your location…',
 locOk:'Location on ✓',
 locOff:'Turn on location (GPS)',
 noLoc:'Cannot find your location yet',
-wait:'Wait 15 seconds before another report',
+wait:'Wait 5 seconds before another report',
 sent:'Report sent, thank you',
 sendFail:'Report not sent, check your internet',
 near:'⚠️ Patrol ahead, {d} km away',
@@ -184,7 +181,7 @@ finding:'آپ کی لوکیشن تلاش ہو رہی ہے…',
 locOk:'لوکیشن آن ہے ✓',
 locOff:'لوکیشن (GPS) آن کریں',
 noLoc:'آپ کی لوکیشن ابھی نہیں ملی',
-wait:'نئی رپورٹ سے پہلے 15 سیکنڈ انتظار کریں',
+wait:'نئی رپورٹ سے پہلے 5 سیکنڈ انتظار کریں',
 sent:'رپورٹ بھیج دی گئی، شکریہ',
 sendFail:'رپورٹ نہیں بھیجی جا سکی، انٹرنیٹ چیک کریں',
 near:'⚠️ آگے پیٹرول ہے، {d} کلومیٹر دور',
