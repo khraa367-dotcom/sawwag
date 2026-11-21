@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -15,19 +16,7 @@
 :root{color-scheme:dark;--bg:#14171a;--panel:#1d2227;--line:#2c333a;--text:#ece9e1;--muted:#98a0a8;--yellow:#f5c518;--red:#e5484d}
 *{box-sizing:border-box}
 html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic","Noto Nastaliq Urdu",system-ui,sans-serif}
-#auth{position:fixed;inset:0;display:flex;flex-direction:column;justify-content:center;padding:28px;gap:12px;max-width:420px;margin:auto}
-#auth h1{font-size:34px;margin:0 0 4px}
-#auth p{margin:0 0 12px;color:var(--muted)}
-#auth .developer{margin:12px 0 0;text-align:center;color:var(--yellow);font-size:14px;font-weight:700;line-height:1.8}
-input{background:var(--panel);border:1px solid var(--line);color:var(--text);padding:16px;border-radius:10px;font:inherit;font-size:17px;direction:ltr;text-align:left}
-input:focus,button:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
-button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;font-size:17px;cursor:pointer}
-.primary{background:var(--yellow);color:#14171a}
-.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
-#err{color:var(--red);min-height:22px;font-size:15px}
-.langs{display:flex;gap:8px;margin-bottom:8px}
-.lang{padding:8px 14px;font-size:14px;border-radius:999px;background:var(--panel);color:var(--muted);border:1px solid var(--line)}
-.lang.on{background:var(--yellow);color:#14171a;border-color:var(--yellow)}
+#loading{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:25px;color:var(--text);font-size:18px}
 #app{display:none;position:fixed;inset:0}
 #map{position:absolute;inset:0;background:#1d2227}
 #top{position:absolute;top:0;left:0;right:0;z-index:1000;padding:calc(env(safe-area-inset-top,0px) + 8px) 12px 8px;display:flex;justify-content:space-between;align-items:center;gap:8px;pointer-events:none}
@@ -35,9 +24,13 @@ button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;fon
 .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:14px;color:var(--muted)}
 #alert{position:absolute;top:calc(env(safe-area-inset-top,0px) + 56px);left:12px;right:12px;z-index:1001;border-radius:12px;padding:16px;font-weight:700;font-size:20px;display:none;text-align:center;color:#fff}
 #bar{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 20px);left:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:10px}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;font-size:17px;cursor:pointer}
 #loc{align-self:flex-start;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:12px 16px;font-size:15px}
 #report{background:var(--yellow);color:#14171a;font-size:24px;padding:22px;border-radius:16px;box-shadow:0 4px 0 #a98600}
 #report:active{transform:translateY(3px);box-shadow:0 1px 0 #a98600}
+.langs{display:flex;gap:8px}
+.lang{padding:8px 14px;font-size:14px;border-radius:999px;background:var(--panel);color:var(--muted);border:1px solid var(--line)}
+.lang.on{background:var(--yellow);color:#14171a;border-color:var(--yellow)}
 .me{width:18px;height:18px;border-radius:50%;background:#3b9eff;border:3px solid #fff;box-shadow:0 0 0 6px rgba(59,158,255,.3)}
 .pat{font-size:30px;line-height:1;filter:drop-shadow(0 2px 2px #000)}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--text)}
@@ -49,26 +42,13 @@ button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:16px;fon
 
 <body>
 
-<div id="auth">
-  <div class="langs" id="langs1"></div>
-  <h1 data-i="title"></h1>
-  <p data-i="sub"></p>
-  <input id="email" type="email" autocomplete="email">
-  <input id="pass" type="password" autocomplete="current-password">
-  <div id="err"></div>
-  <button class="primary" data-i="login" onclick="doAuth('login')"></button>
-  <button class="ghost" data-i="signup" onclick="doAuth('signup')"></button>
-  <p class="developer">المطور: (محمد تاج الدين)</p>
-</div>
+<div id="loading">جاري تشغيل سواق الطريق...</div>
 
 <div id="app">
   <div id="map"></div>
   <div id="top">
     <span class="chip" id="status"></span>
-    <span style="display:flex;gap:8px;align-items:center">
-      <span class="langs" id="langs2" style="margin:0"></span>
-      <button class="chip" data-i="logout" onclick="firebase.auth().signOut()"></button>
-    </span>
+    <span class="langs" id="langs2"></span>
   </div>
   <div id="alert"></div>
   <div id="bar">
@@ -103,12 +83,6 @@ const HIDE_AT = 3;
 const T = {
 ar:{
 title:'سواق الطريق',
-sub:'سجّل بإيميلك وكلمة مرور. بدون رمز تحقق.',
-email:'الإيميل',
-pass:'كلمة المرور (6 أحرف أو أكثر)',
-login:'دخول',
-signup:'إنشاء حساب جديد',
-logout:'خروج',
 locate:'📍 موقعي',
 report:'🚓 شفت دورية',
 finding:'أبحث عن موقعك…',
@@ -125,23 +99,10 @@ still:'لسا موجودة؟',
 yes:'نعم',
 gone:'راحت',
 thanks:'شكراً على تصويتك',
-voteFail:'ما انحسب التصويت',
-e_email:'الإيميل غير صحيح',
-e_pass:'اكتب كلمة المرور',
-e_weak:'كلمة المرور ضعيفة، استخدم 6 أحرف أو أكثر',
-e_used:'هذا الإيميل مسجل من قبل، اضغط دخول',
-e_bad:'الإيميل أو كلمة المرور غلط',
-e_net:'ما فيه إنترنت',
-e_gen:'صار خطأ، حاول مرة ثانية'
+voteFail:'ما انحسب التصويت'
 },
 en:{
 title:'Road Driver',
-sub:'Sign up with email and password. No verification code.',
-email:'Email',
-pass:'Password (6+ characters)',
-login:'Log in',
-signup:'Create account',
-logout:'Log out',
 locate:'📍 My location',
 report:'🚓 Patrol spotted',
 finding:'Finding your location…',
@@ -158,23 +119,10 @@ still:'Still there?',
 yes:'Yes',
 gone:'Gone',
 thanks:'Thanks for your vote',
-voteFail:'Vote not counted',
-e_email:'Invalid email',
-e_pass:'Enter your password',
-e_weak:'Password too weak, use 6+ characters',
-e_used:'This email is already registered, tap Log in',
-e_bad:'Wrong email or password',
-e_net:'No internet connection',
-e_gen:'Something went wrong, try again'
+voteFail:'Vote not counted'
 },
 ur:{
 title:'روڈ ڈرائیور',
-sub:'ای میل اور پاس ورڈ سے رجسٹر کریں۔ کوئی تصدیقی کوڈ نہیں۔',
-email:'ای میل',
-pass:'پاس ورڈ (کم از کم 6 حروف)',
-login:'لاگ ان',
-signup:'نیا اکاؤنٹ بنائیں',
-logout:'لاگ آؤٹ',
 locate:'📍 میری لوکیشن',
 report:'🚓 پیٹرول دیکھی',
 finding:'آپ کی لوکیشن تلاش ہو رہی ہے…',
@@ -191,14 +139,7 @@ still:'ابھی بھی موجود ہے؟',
 yes:'ہاں',
 gone:'چلی گئی',
 thanks:'ووٹ کا شکریہ',
-voteFail:'ووٹ شمار نہیں ہوا',
-e_email:'ای میل درست نہیں',
-e_pass:'پاس ورڈ لکھیں',
-e_weak:'پاس ورڈ کمزور ہے، کم از کم 6 حروف رکھیں',
-e_used:'یہ ای میل پہلے سے رجسٹر ہے، لاگ ان دبائیں',
-e_bad:'ای میل یا پاس ورڈ غلط ہے',
-e_net:'انٹرنیٹ نہیں ہے',
-e_gen:'کوئی خرابی ہوئی، دوبارہ کوشش کریں'
+voteFail:'ووٹ شمار نہیں ہوا'
 }
 };
 
@@ -225,22 +166,17 @@ function setLang(l) {
     el.textContent = t(el.dataset.i);
   });
 
-  document.getElementById('email').placeholder = t('email');
-  document.getElementById('pass').placeholder = t('pass');
-
-  ['langs1','langs2'].forEach(id=>{
-    document.getElementById(id).innerHTML =
-      Object.keys(NAMES).map(k =>
-        '<button class="lang'+(k===l?' on':'')+
-        '" onclick="setLang(\''+k+'\')">'+NAMES[k]+'</button>'
-      ).join('');
-  });
+  document.getElementById('langs2').innerHTML =
+    Object.keys(NAMES).map(k =>
+      '<button class="lang'+(k===l?' on':'')+
+      '" onclick="setLang(\''+k+'\')">'+NAMES[k]+'</button>'
+    ).join('');
 
   setStatus(pos ? 'locOk' : 'finding');
   Object.keys(data).forEach(draw);
 }
 
-/* ===== Firebase ===== */
+/* ===== تهيئة Firebase ===== */
 firebase.initializeApp(firebaseConfig);
 
 const auth = firebase.auth();
@@ -253,74 +189,45 @@ let followed = true;
 let first = true;
 let unsub = null;
 let statusKey = 'finding';
+let anonymousStarting = false;
 
 const markers = {};
 const data = {};
 const seen = {};
 
-const ERR = {
-'auth/invalid-email':'e_email',
-'auth/missing-email':'e_email',
-'auth/missing-password':'e_pass',
-'auth/weak-password':'e_weak',
-'auth/email-already-in-use':'e_used',
-'auth/invalid-credential':'e_bad',
-'auth/user-not-found':'e_bad',
-'auth/wrong-password':'e_bad',
-'auth/network-request-failed':'e_net'
-};
-
-/* ===== تسجيل الدخول وإنشاء الحساب ===== */
-async function doAuth(kind) {
-  const email = document.getElementById('email').value.trim();
-  const password = document.getElementById('pass').value;
-  const errorBox = document.getElementById('err');
-
-  errorBox.textContent = '';
-
-  if (!email) {
-    errorBox.textContent = t('e_email');
-    return;
-  }
-
-  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailPattern.test(email)) {
-    errorBox.textContent = t('e_email');
-    return;
-  }
-
-  if (!password) {
-    errorBox.textContent = t('e_pass');
-    return;
-  }
-
-  if (kind === 'signup' && password.length < 6) {
-    errorBox.textContent = t('e_weak');
-    return;
-  }
-
-  try {
-    if (kind === 'signup') {
-      await auth.createUserWithEmailAndPassword(email,password);
-    } else {
-      await auth.signInWithEmailAndPassword(email,password);
+/* ===== الدخول المجهول تلقائياً ===== */
+auth.onAuthStateChanged(async user=>{
+  if (user && !user.isAnonymous) {
+    try {
+      await auth.signOut();
+    } catch(e) {
+      document.getElementById('loading').textContent =
+        'تعذر تحويل الحساب إلى دخول مجهول. تحقق من الإنترنت ثم أعد المحاولة.';
     }
-  } catch(e) {
-    errorBox.textContent = t(ERR[e.code] || 'e_gen');
+    return;
   }
-}
 
-auth.onAuthStateChanged(user=>{
+  if (!user) {
+    if (anonymousStarting) return;
+
+    anonymousStarting = true;
+
+    try {
+      await auth.signInAnonymously();
+    } catch(e) {
+      document.getElementById('loading').textContent =
+        'تعذر تشغيل التطبيق. تأكد من الإنترنت ومن تفعيل Anonymous في Firebase.';
+    } finally {
+      anonymousStarting = false;
+    }
+    return;
+  }
+
   me = user;
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
 
-  document.getElementById('auth').style.display =
-    user ? 'none' : 'flex';
-
-  document.getElementById('app').style.display =
-    user ? 'block' : 'none';
-
-  if (user) startApp();
-  else stopApp();
+  startApp();
 });
 
 /* ===== الخريطة والموقع ===== */
@@ -353,6 +260,7 @@ function startApp() {
 
   setTimeout(()=>map.invalidateSize(),100);
   listen();
+  setLang(lang);
 }
 
 function stopApp() {
@@ -366,7 +274,8 @@ function stopApp() {
 
 function setStatus(k) {
   statusKey = k;
-  document.getElementById('status').textContent = t(k);
+  const el = document.getElementById('status');
+  if (el) el.textContent = t(k);
 }
 
 function onPos(p) {
@@ -489,7 +398,7 @@ function listen() {
             report.uid !== me.uid &&
             pos &&
             Date.now()-report.ts < 5*60000 &&
-            report.no-report.yes < HIDE_AT
+            (report.no || 0) < HIDE_AT
           ) {
             const distance = km(
               pos.lat,
@@ -516,7 +425,7 @@ function draw(id) {
 
   if (
     !report ||
-    report.no-report.yes >= HIDE_AT ||
+    (report.no || 0) >= HIDE_AT ||
     Date.now()-report.ts > LIFETIME_MIN*60000
   ) {
     removeMarker(id);
@@ -613,7 +522,6 @@ async function enableAudio() {
   }
 }
 
-/* أول تفاعل من المستخدم يجهّز الصوت */
 document.addEventListener('pointerdown',enableAudio);
 document.addEventListener('touchstart',enableAudio);
 
